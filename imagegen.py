@@ -76,13 +76,37 @@ def draw_residual_sugar_bar(img: Image.Image, residual_sugar: float, bar_width: 
     
     # Font laden (versuche System-Font, sonst Default)
     font_size = max(int(bar_width * 0.5), 12)
-    try:
-        font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", font_size)
-    except:
+    font = None
+    
+    # Plattformspezifische Font-Pfade
+    import sys
+    font_candidates = []
+    if sys.platform == "darwin":  # macOS
+        font_candidates = [
+            "/System/Library/Fonts/Helvetica.ttc",
+            "/System/Library/Fonts/SFNSText.ttf",
+        ]
+    elif sys.platform == "win32":  # Windows
+        font_candidates = [
+            "C:/Windows/Fonts/arial.ttf",
+            "C:/Windows/Fonts/segoeui.ttf",
+            "C:/Windows/Fonts/tahoma.ttf",
+        ]
+    else:  # Linux und andere
+        font_candidates = [
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            "/usr/share/fonts/TTF/DejaVuSans.ttf",
+        ]
+    
+    for font_path in font_candidates:
         try:
-            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size)
-        except:
-            font = ImageFont.load_default()
+            font = ImageFont.truetype(font_path, font_size)
+            break
+        except (OSError, IOError):
+            continue
+    
+    if font is None:
+        font = ImageFont.load_default()
     
     # Text vertikal zeichnen (rotiert)
     # Erstelle temporäres Bild für rotierten Text
